@@ -1,0 +1,1 @@
+run = "javac Compressor.java; java Compressor"

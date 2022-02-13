@@ -1,0 +1,11 @@
+
+
+Things that are done
+============================
+-symbolFrequencies HashMap is populated from file -Collin
+
+
+
+
+Things to do
+============================
