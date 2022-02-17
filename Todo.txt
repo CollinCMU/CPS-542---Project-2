@@ -1,16 +1,13 @@
-
-
 Things that are done
 ============================
--symbolFrequencies HashMap is populated from file -Collin
--build tree of nodes representing the keys and symbolFrequencies -Collin
--fill out symbolCodeMap HashMap (hoffman codes) - Collin
--printSymbolCodeMap() - Collin
--compressFileContents(String fileContents) - Collin
+-symbolFrequencies HashMap is populated from file
+-build tree of nodes representing the keys and symbolFrequencies
+-fill out symbolCodeMap HashMap (hoffman codes)
+-printSymbolCodeMap()
+-compressFileContents(String fileContents)
 
 
 Things to do
 ============================
-
 -expectedCodeLengthPerSymbol()
 -Javadoc comments

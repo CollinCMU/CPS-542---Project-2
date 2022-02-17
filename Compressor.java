@@ -30,23 +30,20 @@ public class Compressor {
 		c.printSymbolCodeMap();
 		
 		String compressedFileContents = c.compressFileContents(fileContents);
-		
+    System.out.println(fileContents.length());
+		System.out.println(compressedFileContents.length());
 	}
 	
 	final int SYMBOL_LENGTH = 8;
-	HashMap<String, String> symbolCodeMap;
-	HashMap<String, Double> symbolFrequencies;
+	HashMap<String, String> symbolCodeMap = new HashMap<>();
+	HashMap<String, Double> symbolFrequencies = new HashMap<>();
 	
 	// The constructor should build a symbol to code map based on the 
 	//  symbol frequencies in the fileContents provided.
 	// Chunk through the file with lengths of SYMBOL_LENGTH;
 	Compressor(String fileContents) {
-    //initialize HashMaps
-    symbolCodeMap = new HashMap<>();
-    symbolFrequencies = new HashMap<>();
     PriorityQueue<Node> nodeQueue = new PriorityQueue<>((n1, n2) -> (n1.freq < n2.freq) ? -1 : 1);
     Node rootNode;
-    double totalSymbols = fileContents.length() / SYMBOL_LENGTH;
 
 		// Determine symbol frequencies
     for (int i = 0; i < fileContents.length(); i = i + SYMBOL_LENGTH){
@@ -62,9 +59,8 @@ public class Compressor {
       }
     }
 
-		//update hashmap values from count to frequencies and add them as nodes to the priority queue
+		//add symbols and frequencies as nodes to the priority queue
     for(String key : symbolFrequencies.keySet()){
-      symbolFrequencies.put(key, symbolFrequencies.get(key) / totalSymbols);
       nodeQueue.add(new Node(symbolFrequencies.get(key), key));
     }
 
@@ -86,10 +82,6 @@ public class Compressor {
   *
   */
   public void fillSymbolCodeMap(Node root, String code){
-    if (root == null){
-      return;
-    }
-    
     if (root.left == null && root.right == null){
       symbolCodeMap.put(root.symbol, code);
     }
@@ -101,8 +93,8 @@ public class Compressor {
 
 	//  Prints out each symbol with its code
 	public void printSymbolCodeMap() {
-		for(String key : symbolCodeMap.keySet()){
-      System.out.printf("Key: %s, Code: %s\n", key, symbolCodeMap.get(key));
+		for(String symbol : symbolCodeMap.keySet()){
+      System.out.printf("Symbol: %s, Code: %s\n", symbol, symbolCodeMap.get(symbol));
     }
 	}
 
@@ -118,7 +110,6 @@ public class Compressor {
       compressedString += symbolCodeMap.get(symbol);
     }
 
-    //System.out.println(compressedString.length());
 		return compressedString;
 	}
 	
@@ -135,10 +126,10 @@ public class Compressor {
    *
    */
   class Node{
-    Node left;
-    Node right;
     double freq;
     String symbol;
+    Node left;
+    Node right;
 
     Node(double frequency, String symbol){
       this.freq = frequency;
