@@ -5,9 +5,9 @@ Things that are done
 -fill out symbolCodeMap HashMap (hoffman codes)
 -printSymbolCodeMap()
 -compressFileContents(String fileContents)
+-expectedCodeLengthPerSymbol()
+-Javadoc comments
 
 
 Things to do
 ============================
--expectedCodeLengthPerSymbol()
--Javadoc comments

@@ -18,131 +18,168 @@ public class Compressor {
 
 	public static void main(String[] args) {
 		String fileContents = "";
-		
+
 		try {
 			Scanner scnr = new Scanner(new File("File.txt"));
 			fileContents = scnr.nextLine();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		
+
 		Compressor c = new Compressor(fileContents);
 		c.printSymbolCodeMap();
-		
+
 		String compressedFileContents = c.compressFileContents(fileContents);
-    System.out.println(fileContents.length());
-		System.out.println(compressedFileContents.length());
 	}
-	
+
 	final int SYMBOL_LENGTH = 8;
 	HashMap<String, String> symbolCodeMap = new HashMap<>();
 	HashMap<String, Double> symbolFrequencies = new HashMap<>();
-	
-	// The constructor should build a symbol to code map based on the 
-	//  symbol frequencies in the fileContents provided.
-	// Chunk through the file with lengths of SYMBOL_LENGTH;
+
+
+	/**
+	 * Builds a symbol code map based on the contents of a text file containing binary.
+	 * @param fileContents The text file to compress.
+	 */
 	Compressor(String fileContents) {
-    PriorityQueue<Node> nodeQueue = new PriorityQueue<>((n1, n2) -> (n1.freq < n2.freq) ? -1 : 1);
-    Node rootNode;
+		PriorityQueue<Node> nodeQueue = new PriorityQueue<>(new NodeComparator());
+		double totalSymbols = fileContents.length() / SYMBOL_LENGTH;
+		Node rootNode;
 
 		// Determine symbol frequencies
-    for (int i = 0; i < fileContents.length(); i = i + SYMBOL_LENGTH){
-      String symbol = fileContents.substring(i, i + SYMBOL_LENGTH);
+		for (int i = 0; i < fileContents.length(); i = i + SYMBOL_LENGTH){
+			String symbol = fileContents.substring(i, i + SYMBOL_LENGTH);
 
-      //if already in hashmap, update value
-      if (symbolFrequencies.containsKey(symbol)){
-        symbolFrequencies.put(symbol, symbolFrequencies.get(symbol) + 1.0);
-      }
-      //add to HashMap
-      else{
-        symbolFrequencies.put(symbol, 1.0);
-      }
-    }
+			//if already in hashmap, update value
+			if (symbolFrequencies.containsKey(symbol)){
+				symbolFrequencies.put(symbol, symbolFrequencies.get(symbol) + 1.0);
+			}
+			//add to HashMap
+			else{
+				symbolFrequencies.put(symbol, 1.0);
+			}
+		}
 
+		//update frequencies from count to relative frequency
 		//add symbols and frequencies as nodes to the priority queue
-    for(String key : symbolFrequencies.keySet()){
-      nodeQueue.add(new Node(symbolFrequencies.get(key), key));
-    }
+		for(String key : symbolFrequencies.keySet()){
+			symbolFrequencies.put(key, symbolFrequencies.get(key) / totalSymbols);
+			nodeQueue.add(new Node(symbolFrequencies.get(key), key));
+		}
 
-    //build tree
-    while (nodeQueue.size() > 1){
-      Node nodeOne = nodeQueue.poll();
-      Node nodeTwo = nodeQueue.poll();
-      Node combineNode = new Node(nodeOne, nodeTwo);
-      nodeQueue.add(combineNode);
-    }
-    rootNode = nodeQueue.poll();
+		//build tree using priority queue
+		while (nodeQueue.size() > 1){
+			nodeQueue.add(new Node(nodeQueue.poll(), nodeQueue.poll()));
+		}
+		rootNode = nodeQueue.poll();
 
 		// Create encoding map
-    fillSymbolCodeMap(rootNode, "");
-	}
-	
-  /**
-  *
-  *
-  */
-  public void fillSymbolCodeMap(Node root, String code){
-    if (root.left == null && root.right == null){
-      symbolCodeMap.put(root.symbol, code);
-    }
-    else{
-      fillSymbolCodeMap(root.left, code + "0");
-      fillSymbolCodeMap(root.right, code + "1");
-    }
-  }
-
-	//  Prints out each symbol with its code
-	public void printSymbolCodeMap() {
-		for(String symbol : symbolCodeMap.keySet()){
-      System.out.printf("Symbol: %s, Code: %s\n", symbol, symbolCodeMap.get(symbol));
-    }
+		fillSymbolCodeMap(rootNode, "");
 	}
 
 	/**
-  *
-  *
-  */ 
+	 * Generates Hoffman codes based on symbol frequencies.
+	 * @param root The root-node of a tree.
+	 * @param code Empty string that gets populated recursively.
+	 */
+	public void fillSymbolCodeMap(Node root, String code){
+		if (root.left == null && root.right == null){
+			symbolCodeMap.put(root.symbol, code);
+		}
+		else{
+			fillSymbolCodeMap(root.left, code + "0");
+			fillSymbolCodeMap(root.right, code + "1");
+		}
+	}
+
+
+	/**
+	 * Prints out each symbol and it's Hoffman code.
+	 */
+	public void printSymbolCodeMap() {
+		for(String symbol : symbolCodeMap.keySet()){
+			System.out.printf("Symbol: %s, Code: %s\n", symbol, symbolCodeMap.get(symbol));
+		}
+	}
+
+	/**
+	 * Returns a string compressed with Hoffman encoding.
+	 * @param fileContents The data to compress.
+	 * @return The compressed data.
+	 */ 
 	public String compressFileContents(String fileContents) {
 		String compressedString = "";
 
-    for (int i = 0; i < fileContents.length(); i = i + SYMBOL_LENGTH){
-      String symbol = fileContents.substring(i, i + SYMBOL_LENGTH);
-      compressedString += symbolCodeMap.get(symbol);
-    }
+		for (int i = 0; i < fileContents.length(); i = i + SYMBOL_LENGTH){
+			String symbol = fileContents.substring(i, i + SYMBOL_LENGTH);
+			compressedString += symbolCodeMap.get(symbol);
+		}
 
 		return compressedString;
 	}
-	
-	// Using the frequencies of the symbols and lengths of their associated
-	//  codeword, calculate the expected code length per symbol in fileContents
- 	public double expectedCodeLengthPerSymbol() {
- 		
- 		return 0;
- 	}
- 	
-   
-   /**
-   *
-   *
-   */
-  class Node{
-    double freq;
-    String symbol;
-    Node left;
-    Node right;
 
-    Node(double frequency, String symbol){
-      this.freq = frequency;
-      this.symbol = symbol;
-      left = null;
-      right = null;
-    }
 
-    Node(Node left, Node right){
-      this.freq = left.freq + right.freq;
-      symbol = null;
-      this.left = left;
-      this.right = right;
-    }
-  }
+	/**
+	 * Returns the sum of expected code lengths per symbol.
+	 * @return The sum of expected code lengths per symbol.
+	 */
+	public double expectedCodeLengthPerSymbol() {
+		double sum = 0.0;
+
+		for(String key : symbolFrequencies.keySet()){
+			sum += symbolFrequencies.get(key) * symbolCodeMap.get(key).length();
+		}
+
+		return sum;
+	}
+
+
+	/**
+	 * Represents a node in a tree.
+	 */
+	class Node{
+		double freq;
+		String symbol;
+		Node left;
+		Node right;
+
+		/**
+		 * Constructs a new leaf node.
+		 * @param frequency The frequency of the symbol.
+		 * @param symbol The symbol.
+		 */
+		Node(double frequency, String symbol){
+			this.freq = frequency;
+			this.symbol = symbol;
+			left = null;
+			right = null;
+		}
+
+		/**
+		 * Constructs a new parent node from two leafs.
+		 * @param left Left leaf node.
+		 * @param right Right leaf node.
+		 */
+		Node(Node left, Node right){
+			this.freq = left.freq + right.freq;
+			symbol = null;
+			this.left = left;
+			this.right = right;
+		}
+	}
+
+	/**
+	 * Compares two nodes based on their frequency.
+	 */
+	class NodeComparator implements Comparator<Node> {
+		@Override
+		public int compare(Node n1, Node n2) {
+			if (Math.abs(n1.freq - n2.freq) < 10e-15){
+				return 0;
+			}
+			else {
+				return n1.freq - n2.freq > 0 ? 1 : -1;
+			}
+		}
+	}
 }
